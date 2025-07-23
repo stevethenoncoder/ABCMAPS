@@ -82,31 +82,38 @@ function populateFilters() {
 
 // Function to display markers on the map
 function displayMarkers(data) {
-    markers.clearLayers(); // Clear existing markers
+    markers.clearLayers();
+    const latLngs = []; // To store positions of current markers
+
     data.forEach(item => {
-        // Make sure Lat and Long are valid numbers
         const lat = parseFloat(item.Lat);
         const lng = parseFloat(item.Long);
 
         if (!isNaN(lat) && !isNaN(lng)) {
-// Get first letter and color
-const firstLetter = (item.Category || 'A').charAt(0).toUpperCase();
-const color = categoryColors[firstLetter] || "#333";
+            // (Your custom icon code here)
+            const firstLetter = (item.Category || 'A').charAt(0).toUpperCase();
+            const color = categoryColors[firstLetter] || "#333";
+            const icon = L.divIcon({
+                className: "custom-category-icon",
+                html: `<div style="background:${color};color:#fff;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:bold;border-radius:50%;">${firstLetter}</div>`,
+                iconSize: [32, 32],
+                iconAnchor: [16, 16]
+            });
 
-// Create a custom divIcon
-const icon = L.divIcon({
-    className: "custom-category-icon",
-    html: `<div style="background:${color};color:#fff;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:bold;border-radius:50%;">${firstLetter}</div>`,
-    iconSize: [32, 32],
-    iconAnchor: [16, 16]
-});
+            const marker = L.marker([lat, lng], { icon });
+            const popupContent = `<b>${item.Place}</b><br>${item.Category}<br>Visited: ${item.Date}`;
+            marker.bindPopup(popupContent);
+            markers.addLayer(marker);
 
-const marker = L.marker([lat, lng], { icon });
-const popupContent = `<b>${item.Place}</b><br>${item.Category}<br>Visited: ${item.Date}`;
-marker.bindPopup(popupContent);
-markers.addLayer(marker);
+            // Add position to array
+            latLngs.push([lat, lng]);
         }
     });
+
+    // Adjust map view to show all current markers, if any
+    if (latLngs.length > 0) {
+        map.fitBounds(latLngs, { padding: [30, 30] });
+    }
 }
 
 // Function to apply filters based on dropdown selections
