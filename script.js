@@ -23,9 +23,6 @@ const categoryColors = {
 let allData = []; // To store all location data
 const markers = L.layerGroup().addTo(map); // A layer group to hold markers for easy clearing
 
-const labelLayer = L.layerGroup().addTo(map);
-let showLabels = true;
-
 // --- FETCH AND PROCESS DATA ---
 fetch(sheetUrl)
     .then(response => response.text())
@@ -86,39 +83,34 @@ function populateFilters() {
 // Function to display markers on the map
 function displayMarkers(data) {
     markers.clearLayers();
-    labelLayer.clearLayers();
-    const latLngs = [];
+    const latLngs = []; // To store positions of current markers
 
     data.forEach(item => {
         const lat = parseFloat(item.Lat);
         const lng = parseFloat(item.Long);
 
         if (!isNaN(lat) && !isNaN(lng)) {
-            // ... your existing marker code ...
+            // (Your custom icon code here)
+            const firstLetter = (item.Category || 'A').charAt(0).toUpperCase();
+            const color = categoryColors[firstLetter] || "#333";
+            const icon = L.divIcon({
+                className: "custom-category-icon",
+                html: `<div style="background:${color};color:#fff;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:bold;border-radius:50%;">${firstLetter}</div>`,
+                iconSize: [32, 32],
+                iconAnchor: [16, 16]
+            });
 
             const marker = L.marker([lat, lng], { icon });
             const popupContent = `<b>${item.Place}</b><br>${item.Category}<br>Visited: ${item.Date}`;
             marker.bindPopup(popupContent);
             markers.addLayer(marker);
 
+            // Add position to array
             latLngs.push([lat, lng]);
-
-            // Add label if toggled on
-            if (showLabels) {
-                const label = L.marker([lat, lng], {
-                    icon: L.divIcon({
-                        className: 'place-label',
-                        html: `<span>${item.Place}</span>`,
-                        iconSize: [100, 24],
-                        iconAnchor: [0, 12]
-                    }),
-                    interactive: false // so clicking label doesn't pop up the marker
-                });
-                labelLayer.addLayer(label);
-            }
         }
     });
 
+    // Adjust map view to show all current markers, if any
     if (latLngs.length > 0) {
         map.fitBounds(latLngs, { padding: [30, 30] });
     }
@@ -136,9 +128,4 @@ function applyFilters() {
     });
 
     displayMarkers(filteredData);
-
-    document.getElementById('toggle-labels').addEventListener('change', function(e) {
-    showLabels = e.target.checked;
-    displayMarkers(getCurrentFilteredData()); // Or pass the correct filtered data here
-});
 }
