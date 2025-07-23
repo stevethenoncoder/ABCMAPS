@@ -1,0 +1,19 @@
+body {
+    font-family: sans-serif;
+    margin: 20px;
+}
+
+#map {
+    height: 600px; /* You must define a height */
+    width: 100%;
+    border: 1px solid #ccc;
+}
+
+.filters {
+    margin-bottom: 15px;
+}
+
+.filters select {
+    padding: 8px;
+    margin-right: 10px;
+}
