@@ -11,6 +11,14 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(map);
 
+const categoryColors = {
+    A: "#e6194b", B: "#3cb44b", C: "#ffe119", D: "#0082c8", E: "#f58231",
+    F: "#911eb4", G: "#46f0f0", H: "#f032e6", I: "#d2f53c", J: "#fabebe",
+    K: "#008080", L: "#e6beff", M: "#aa6e28", N: "#fffac8", O: "#800000",
+    P: "#aaffc3", Q: "#808000", R: "#ffd8b1", S: "#000080", T: "#808080",
+    U: "#bcf5a9", V: "#fdcce5", W: "#9a6324", X: "#fff", Y: "#000", Z: "#f0f"
+};
+
 // --- GLOBAL VARIABLES ---
 let allData = []; // To store all location data
 const markers = L.layerGroup().addTo(map); // A layer group to hold markers for easy clearing
@@ -81,11 +89,22 @@ function displayMarkers(data) {
         const lng = parseFloat(item.Long);
 
         if (!isNaN(lat) && !isNaN(lng)) {
-            const marker = L.marker([lat, lng]);
-            // Create a pop-up with information
-            const popupContent = `<b>${item.Place}</b><br>${item.Category}<br>Visited: ${item.Date}`;
-            marker.bindPopup(popupContent);
-            markers.addLayer(marker);
+// Get first letter and color
+const firstLetter = (item.Category || 'A').charAt(0).toUpperCase();
+const color = categoryColors[firstLetter] || "#333";
+
+// Create a custom divIcon
+const icon = L.divIcon({
+    className: "custom-category-icon",
+    html: `<div style="background:${color};color:#fff;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:bold;border-radius:50%;">${firstLetter}</div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16]
+});
+
+const marker = L.marker([lat, lng], { icon });
+const popupContent = `<b>${item.Place}</b><br>${item.Category}<br>Visited: ${item.Date}`;
+marker.bindPopup(popupContent);
+markers.addLayer(marker);
         }
     });
 }
