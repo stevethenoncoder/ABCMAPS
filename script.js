@@ -1,0 +1,105 @@
+// --- CONFIGURATION ---
+// Paste the published Google Sheet CSV URL here
+const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQyRVGJUzbjaaqh6JFCSjo22E8TWflgfwhDY2NIR6JiZdZufAg7Ny66l73hU9Lo-vHRq-O730-N-pTp/pub?gid=1842473880&single=true&output=csv';
+
+// --- INITIALIZE MAP ---
+// Set initial coordinates and zoom level (e.g., centered on the UK)
+const map = L.map('map').setView([54.5, -2.5], 6);
+
+// Add a tile layer from OpenStreetMap
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
+
+// --- GLOBAL VARIABLES ---
+let allData = []; // To store all location data
+const markers = L.layerGroup().addTo(map); // A layer group to hold markers for easy clearing
+
+// --- FETCH AND PROCESS DATA ---
+fetch(sheetUrl)
+    .then(response => response.text())
+    .then(csvText => {
+        // Parse the CSV data
+        allData = parseCSV(csvText);
+        // Populate filters and display all markers initially
+        populateFilters();
+        displayMarkers(allData);
+    });
+
+// --- HELPER FUNCTIONS ---
+
+// A simple function to parse CSV text into an array of objects
+function parseCSV(text) {
+    const lines = text.split('\n');
+    const headers = lines[0].split(',').map(h => h.trim());
+    const rows = [];
+    for (let i = 1; i < lines.length; i++) {
+        const data = lines[i].split(',').map(d => d.trim());
+        if (data.length === headers.length) {
+            const row = {};
+            for (let j = 0; j < headers.length; j++) {
+                row[headers[j]] = data[j];
+            }
+            rows.push(row);
+        }
+    }
+    return rows;
+}
+
+// Function to populate the filter dropdowns with unique values
+function populateFilters() {
+    const countyFilter = document.getElementById('county-filter');
+    const categoryFilter = document.getElementById('category-filter');
+
+    // Get unique values for county and category
+    const counties = [...new Set(allData.map(item => item.County))];
+    const categories = [...new Set(allData.map(item => item.Category))];
+
+    // Populate County Filter
+    countyFilter.innerHTML = '<option value="all">All Counties</option>';
+    counties.sort().forEach(county => {
+        countyFilter.innerHTML += `<option value="${county}">${county}</option>`;
+    });
+
+    // Populate Category Filter
+    categoryFilter.innerHTML = '<option value="all">All Categories</option>';
+    categories.sort().forEach(category => {
+        categoryFilter.innerHTML += `<option value="${category}">${category}</option>`;
+    });
+
+    // Add event listeners to trigger filtering
+    countyFilter.addEventListener('change', applyFilters);
+    categoryFilter.addEventListener('change', applyFilters);
+}
+
+// Function to display markers on the map
+function displayMarkers(data) {
+    markers.clearLayers(); // Clear existing markers
+    data.forEach(item => {
+        // Make sure Lat and Long are valid numbers
+        const lat = parseFloat(item.Lat);
+        const lng = parseFloat(item.Long);
+
+        if (!isNaN(lat) && !isNaN(lng)) {
+            const marker = L.marker([lat, lng]);
+            // Create a pop-up with information
+            const popupContent = `<b>${item.Place}</b><br>${item.Category}<br>Visited: ${item.Date}`;
+            marker.bindPopup(popupContent);
+            markers.addLayer(marker);
+        }
+    });
+}
+
+// Function to apply filters based on dropdown selections
+function applyFilters() {
+    const selectedCounty = document.getElementById('county-filter').value;
+    const selectedCategory = document.getElementById('category-filter').value;
+
+    const filteredData = allData.filter(item => {
+        const countyMatch = (selectedCounty === 'all' || item.County === selectedCounty);
+        const categoryMatch = (selectedCategory === 'all' || item.Category === selectedCategory);
+        return countyMatch && categoryMatch;
+    });
+
+    displayMarkers(filteredData);
+}
