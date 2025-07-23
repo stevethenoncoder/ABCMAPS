@@ -17,3 +17,8 @@ body {
     padding: 8px;
     margin-right: 10px;
 }
+
+.custom-category-icon {
+    border: none;
+    background: none;
+}
