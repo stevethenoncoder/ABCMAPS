@@ -22,6 +22,7 @@ const categoryColors = {
 // --- GLOBAL VARIABLES ---
 let allData = []; // To store all location data
 const markers = L.layerGroup().addTo(map); // A layer group to hold markers for easy clearing
+let showLabels = true; // Label toggle state
 
 // --- FETCH AND PROCESS DATA ---
 fetch(sheetUrl)
@@ -32,6 +33,7 @@ fetch(sheetUrl)
         // Populate filters and display all markers initially
         populateFilters();
         displayMarkers(allData);
+        setupLabelToggle(); // Ensure label toggle works after filters are ready
     });
 
 // --- HELPER FUNCTIONS ---
@@ -70,62 +72,5 @@ function populateFilters() {
     });
 
     // Populate Category Filter
-    categoryFilter.innerHTML = '<option value="all">All Categories</option>';
-    categories.sort().forEach(category => {
-        categoryFilter.innerHTML += `<option value="${category}">${category}</option>`;
-    });
-
-    // Add event listeners to trigger filtering
-    countyFilter.addEventListener('change', applyFilters);
-    categoryFilter.addEventListener('change', applyFilters);
-}
-
-// Function to display markers on the map
-function displayMarkers(data) {
-    markers.clearLayers();
-    const latLngs = []; // To store positions of current markers
-
-    data.forEach(item => {
-        const lat = parseFloat(item.Lat);
-        const lng = parseFloat(item.Long);
-
-        if (!isNaN(lat) && !isNaN(lng)) {
-            // (Your custom icon code here)
-            const firstLetter = (item.Category || 'A').charAt(0).toUpperCase();
-            const color = categoryColors[firstLetter] || "#333";
-            const icon = L.divIcon({
-                className: "custom-category-icon",
-                html: `<div style="background:${color};color:#fff;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:bold;border-radius:50%;">${firstLetter}</div>`,
-                iconSize: [32, 32],
-                iconAnchor: [16, 16]
-            });
-
-            const marker = L.marker([lat, lng], { icon });
-            const popupContent = `<b>${item.Place}</b><br>${item.Category}<br>Visited: ${item.Date}`;
-            marker.bindPopup(popupContent);
-            markers.addLayer(marker);
-
-            // Add position to array
-            latLngs.push([lat, lng]);
-        }
-    });
-
-    // Adjust map view to show all current markers, if any
-    if (latLngs.length > 0) {
-        map.fitBounds(latLngs, { padding: [30, 30] });
-    }
-}
-
-// Function to apply filters based on dropdown selections
-function applyFilters() {
-    const selectedCounty = document.getElementById('county-filter').value;
-    const selectedCategory = document.getElementById('category-filter').value;
-
-    const filteredData = allData.filter(item => {
-        const countyMatch = (selectedCounty === 'all' || item.County === selectedCounty);
-        const categoryMatch = (selectedCategory === 'all' || item.Category === selectedCategory);
-        return countyMatch && categoryMatch;
-    });
-
-    displayMarkers(filteredData);
-}
+    categoryFilter.innerHTML = '<option
+
