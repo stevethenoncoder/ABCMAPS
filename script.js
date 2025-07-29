@@ -127,7 +127,17 @@ function displayMarkers(data) {
             });
 
             const marker = L.marker([lat, lng], { icon });
-            const popupContent = `<b>${item.Place}</b><br>${item.Category}<br>Visited: ${item.Date}`;
+
+let popupContent = `<b>${item.Place}</b><br>${item.Category}<br>Visited: ${item.Date}`;
+
+// Add Blog info
+const blog = (item.Blog || '').trim();
+if (blog.toLowerCase() === 'no' || blog === '') {
+    popupContent += `<br>Blog: No`;
+} else {
+    popupContent += `<br>Blog: <a href="${blog}" target="_blank">Link</a>`;
+}
+
             marker.bindPopup(popupContent);
 
             // Only bind tooltip if checkbox is checked
