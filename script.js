@@ -23,6 +23,8 @@ const categoryColors = {
 let allData = []; // To store all location data
 const markers = L.layerGroup().addTo(map); // A layer group to hold markers for easy clearing
 const tooltipRefs = [];  // store tooltips here
+let currentData = []; // this will always hold the latest filtered or full dataset
+
 
 
 // --- FETCH AND PROCESS DATA ---
@@ -31,6 +33,7 @@ fetch(sheetUrl)
     .then(csvText => {
         // Parse the CSV data
         allData = parseCSV(csvText);
+        currentData = allData; // set initial full dataset
         // Populate filters and display all markers initially
         populateFilters();
         displayMarkers(allData);
@@ -166,17 +169,18 @@ function applyFilters() {
     const selectedCounty = document.getElementById('county-filter').value;
     const selectedCategory = document.getElementById('category-filter').value;
 
-    const filteredData = allData.filter(item => {
+    currentData = allData.filter(item => {
         const countyMatch = (selectedCounty === 'all' || item.County === selectedCounty);
         const categoryMatch = (selectedCategory === 'all' || item.Category === selectedCategory);
         return countyMatch && categoryMatch;
     });
 
-    displayMarkers(filteredData);
+    displayMarkers(currentData);
 }
 
 
 document.getElementById('toggle-labels').addEventListener('change', () => {
-    displayMarkers(filteredData); // or your current dataset variable
+    displayMarkers(currentData);
 });
+
 
