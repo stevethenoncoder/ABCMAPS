@@ -68,7 +68,6 @@ function populateFilters() {
     const countyFilter = document.getElementById('county-filter');
     const categoryFilter = document.getElementById('category-filter');
 
-    // Create count maps
     const countyCounts = {};
     const categoryCounts = {};
 
@@ -77,38 +76,32 @@ function populateFilters() {
         const category = item.Category || 'Unknown';
         const visited = item.Visited && item.Visited.trim().toLowerCase() === 'yes';
 
+        if (!(county in countyCounts)) countyCounts[county] = 0;
+        if (!(category in categoryCounts)) categoryCounts[category] = 0;
 
-        // Count only if visited is not empty
         if (visited) {
-            countyCounts[county] = (countyCounts[county] || 0) + 1;
-            categoryCounts[category] = (categoryCounts[category] || 0) + 1;
-        } else {
-            // Still initialize to 0 if not already set
-            countyCounts[county] = countyCounts[county] || 0;
-            categoryCounts[category] = categoryCounts[category] || 0;
+            countyCounts[county]++;
+            categoryCounts[category]++;
         }
     });
 
-    // Get sorted unique lists
     const counties = Object.keys(countyCounts).sort();
     const categories = Object.keys(categoryCounts).sort();
 
-    // Populate County Filter
     countyFilter.innerHTML = '<option value="all">All Counties</option>';
     counties.forEach(county => {
         countyFilter.innerHTML += `<option value="${sanitize(county)}">${sanitize(county)} (${countyCounts[county]})</option>`;
     });
 
-    // Populate Category Filter
     categoryFilter.innerHTML = '<option value="all">All Categories</option>';
     categories.forEach(category => {
         categoryFilter.innerHTML += `<option value="${sanitize(category)}">${sanitize(category)} (${categoryCounts[category]})</option>`;
     });
 
-    // Add event listeners to trigger filtering
     countyFilter.addEventListener('change', applyFilters);
     categoryFilter.addEventListener('change', applyFilters);
 }
+
 
 
 // Function to display markers on the map
