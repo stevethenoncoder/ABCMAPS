@@ -68,27 +68,47 @@ function populateFilters() {
     const countyFilter = document.getElementById('county-filter');
     const categoryFilter = document.getElementById('category-filter');
 
-    // Get unique values for county and category
-    const counties = [...new Set(allData.map(item => item.County))];
-    const categories = [...new Set(allData.map(item => item.Category))];
+    // Create count maps
+    const countyCounts = {};
+    const categoryCounts = {};
+
+    allData.forEach(item => {
+        const county = item.County || 'Unknown';
+        const category = item.Category || 'Unknown';
+        const visited = item.Visited && item.Visited.trim() !== '';
+
+        // Count only if visited is not empty
+        if (visited) {
+            countyCounts[county] = (countyCounts[county] || 0) + 1;
+            categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+        } else {
+            // Still initialize to 0 if not already set
+            countyCounts[county] = countyCounts[county] || 0;
+            categoryCounts[category] = categoryCounts[category] || 0;
+        }
+    });
+
+    // Get sorted unique lists
+    const counties = Object.keys(countyCounts).sort();
+    const categories = Object.keys(categoryCounts).sort();
 
     // Populate County Filter
     countyFilter.innerHTML = '<option value="all">All Counties</option>';
-    counties.sort().forEach(county => {
-        countyFilter.innerHTML += `<option value="${county}">${county}</option>`;
+    counties.forEach(county => {
+        countyFilter.innerHTML += `<option value="${sanitize(county)}">${sanitize(county)} (${countyCounts[county]})</option>`;
     });
 
     // Populate Category Filter
     categoryFilter.innerHTML = '<option value="all">All Categories</option>';
-    console.log("Categories found:", categories);
-    categories.sort().forEach(category => {
-        categoryFilter.innerHTML += `<option value="${sanitize(category)}">${sanitize(category)}</option>`;
+    categories.forEach(category => {
+        categoryFilter.innerHTML += `<option value="${sanitize(category)}">${sanitize(category)} (${categoryCounts[category]})</option>`;
     });
 
     // Add event listeners to trigger filtering
     countyFilter.addEventListener('change', applyFilters);
     categoryFilter.addEventListener('change', applyFilters);
 }
+
 
 // Function to display markers on the map
 function displayMarkers(data) {
