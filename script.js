@@ -109,14 +109,14 @@ function populateFilters() {
 // Function to display markers on the map
 function displayMarkers(data) {
     markers.clearLayers();
-    const latLngs = []; // To store positions of current markers
+    const latLngs = [];
+    const showLabels = document.getElementById('toggle-labels').checked;
 
     data.forEach(item => {
         const lat = parseFloat(item.Lat);
         const lng = parseFloat(item.Long);
 
         if (!isNaN(lat) && !isNaN(lng)) {
-            // (Your custom icon code here)
             const firstLetter = (item.Category || 'A').charAt(0).toUpperCase();
             const color = categoryColors[firstLetter] || "#333";
             const icon = L.divIcon({
@@ -130,29 +130,26 @@ function displayMarkers(data) {
             const popupContent = `<b>${item.Place}</b><br>${item.Category}<br>Visited: ${item.Date}`;
             marker.bindPopup(popupContent);
 
-            // Create and bind tooltip, but keep it hidden initially
-            const tooltip = marker.bindTooltip(item.Place, {
-                permanent: true,
-                direction: 'right',
-                offset: [10, 0],
-                className: 'map-label'
-            }).getTooltip();
+            // Only bind tooltip if checkbox is checked
+            if (showLabels) {
+                marker.bindTooltip(item.Place, {
+                    permanent: true,
+                    direction: 'right',
+                    offset: [10, 0],
+                    className: 'map-label'
+                }).openTooltip();
+            }
 
-            tooltip.remove(); // Hide by default
-            tooltipRefs.push(tooltip);
-            
             markers.addLayer(marker);
-
-            // Add position to array
             latLngs.push([lat, lng]);
         }
     });
 
-    // Adjust map view to show all current markers, if any
     if (latLngs.length > 0) {
         map.fitBounds(latLngs, { padding: [30, 30] });
     }
 }
+
 
 // Function to apply filters based on dropdown selections
 function applyFilters() {
@@ -168,14 +165,8 @@ function applyFilters() {
     displayMarkers(filteredData);
 }
 
-document.getElementById('toggle-labels').addEventListener('change', function () {
-    const showLabels = this.checked;
-    tooltipRefs.forEach(tooltip => {
-        if (showLabels) {
-            map.openTooltip(tooltip);
-        } else {
-            map.closeTooltip(tooltip);
-        }
-    });
+
+document.getElementById('toggle-labels').addEventListener('change', () => {
+    displayMarkers(filteredData); // or your current dataset variable
 });
 
