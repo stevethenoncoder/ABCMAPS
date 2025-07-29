@@ -22,6 +22,7 @@ const categoryColors = {
 // --- GLOBAL VARIABLES ---
 let allData = []; // To store all location data
 const markers = L.layerGroup().addTo(map); // A layer group to hold markers for easy clearing
+const tooltipRefs = [];  // store tooltips here
 
 
 // --- FETCH AND PROCESS DATA ---
@@ -129,14 +130,16 @@ function displayMarkers(data) {
             const popupContent = `<b>${item.Place}</b><br>${item.Category}<br>Visited: ${item.Date}`;
             marker.bindPopup(popupContent);
 
-// Add permanent tooltip with Place name
-marker.bindTooltip(item.Place, {
-  permanent: true,
-  direction: 'right',  // you can try 'top', 'bottom', 'left' too
-  offset: [10, 0],     // offset the label so it doesn’t overlap the icon
-  className: 'map-label'  // custom class for styling
-}).openTooltip();
+            // Create and bind tooltip, but keep it hidden initially
+            const tooltip = marker.bindTooltip(item.Place, {
+                permanent: true,
+                direction: 'right',
+                offset: [10, 0],
+                className: 'map-label'
+            }).getTooltip();
 
+            tooltip.remove(); // Hide by default
+            tooltipRefs.push(tooltip);
             
             markers.addLayer(marker);
 
@@ -164,3 +167,15 @@ function applyFilters() {
 
     displayMarkers(filteredData);
 }
+
+document.getElementById('toggle-labels').addEventListener('change', function () {
+    const showLabels = this.checked;
+    tooltipRefs.forEach(tooltip => {
+        if (showLabels) {
+            map.openTooltip(tooltip);
+        } else {
+            map.closeTooltip(tooltip);
+        }
+    });
+});
+
