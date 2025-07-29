@@ -75,7 +75,7 @@ function populateFilters() {
     allData.forEach(item => {
         const county = item.County || 'Unknown';
         const category = item.Category || 'Unknown';
-        const visited = item.Visited && item.Visited.trim().toLowerCase() === 'Yes';
+        const visited = item.Visited && item.Visited.trim().toLowerCase() === 'yes';
 
 
         // Count only if visited is not empty
