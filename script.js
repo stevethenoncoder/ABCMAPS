@@ -53,6 +53,15 @@ function parseCSV(text) {
     }
     return rows;
 }
+// Function to sanitise
+function sanitize(str) {
+    return String(str || '')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/[\u0000-\u001F\u007F-\u009F]/g, '')  // Remove control chars
+        .trim();
+}
 
 // Function to populate the filter dropdowns with unique values
 function populateFilters() {
@@ -71,8 +80,9 @@ function populateFilters() {
 
     // Populate Category Filter
     categoryFilter.innerHTML = '<option value="all">All Categories</option>';
+    console.log("Categories found:", categories);
     categories.sort().forEach(category => {
-        categoryFilter.innerHTML += `<option value="${category}">${category}</option>`;
+        categoryFilter.innerHTML += `<option value="${sanitize(category)}">${sanitize(category)}</option>`;
     });
 
     // Add event listeners to trigger filtering
