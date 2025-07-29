@@ -36,6 +36,21 @@ fetch(sheetUrl)
         currentData = allData; // set initial full dataset
         // Populate filters and display all markers initially
         populateFilters();
+
+// Apply default filters from URL
+const defaultCounty = getURLParameter('county');
+const defaultCategory = getURLParameter('category');
+
+if (defaultCounty) {
+    document.getElementById('county-filter').value = defaultCounty;
+}
+if (defaultCategory) {
+    document.getElementById('category-filter').value = defaultCategory;
+}
+
+// Filter and show markers
+applyFilters();
+        
         displayMarkers(allData);
     });
 
@@ -58,6 +73,14 @@ function parseCSV(text) {
     }
     return rows;
 }
+
+//Read parameters
+function getURLParameter(name) {
+    const params = new URLSearchParams(window.location.search);
+    return params.get(name);
+}
+
+
 // Function to sanitise
 function sanitize(str) {
     return String(str || '')
@@ -131,7 +154,7 @@ function displayMarkers(data) {
 
             const marker = L.marker([lat, lng], { icon });
 
-let popupContent = `<b>${item.Place}</b><br>${item.Category}<br>VisitedA: ${item.Date}`;
+let popupContent = `<b>${item.Place}</b><br>${item.Category}<br>VisitedB: ${item.Date}`;
 
 // Add Blog info
 const blog = (item.Blog || '').trim();
