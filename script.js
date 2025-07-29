@@ -23,6 +23,7 @@ const categoryColors = {
 let allData = []; // To store all location data
 const markers = L.layerGroup().addTo(map); // A layer group to hold markers for easy clearing
 
+
 // --- FETCH AND PROCESS DATA ---
 fetch(sheetUrl)
     .then(response => response.text())
@@ -127,6 +128,16 @@ function displayMarkers(data) {
             const marker = L.marker([lat, lng], { icon });
             const popupContent = `<b>${item.Place}</b><br>${item.Category}<br>Visited: ${item.Date}`;
             marker.bindPopup(popupContent);
+
+// Add permanent tooltip with Place name
+marker.bindTooltip(item.Place, {
+  permanent: true,
+  direction: 'right',  // you can try 'top', 'bottom', 'left' too
+  offset: [10, 0],     // offset the label so it doesn’t overlap the icon
+  className: 'map-label'  // custom class for styling
+}).openTooltip();
+
+            
             markers.addLayer(marker);
 
             // Add position to array
