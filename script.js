@@ -38,19 +38,22 @@ fetch(sheetUrl)
         populateFilters();
 
 // Apply default filters from URL
-const defaultCounty = getURLParameter('county');
-const defaultCategory = getURLParameter('category');
+// Delay setting filters & applying them until dropdowns are populated
+setTimeout(() => {
+    const defaultCounty = getURLParameter('county');
+    const defaultCategory = getURLParameter('category');
 
-if (defaultCounty) {
-    document.getElementById('county-filter').value = defaultCounty;
-}
-if (defaultCategory) {
-    document.getElementById('category-filter').value = defaultCategory;
-}
+    if (defaultCounty) {
+        document.getElementById('county-filter').value = defaultCounty;
+    }
+    if (defaultCategory) {
+        document.getElementById('category-filter').value = defaultCategory;
+    }
 
-// Filter and show markers
-applyFilters();
-        
+    applyFilters(); // ✅ Will now filter correctly
+}, 0);
+
+       
         displayMarkers(allData);
     });
 
