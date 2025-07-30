@@ -157,7 +157,7 @@ function displayMarkers(data) {
 
             const marker = L.marker([lat, lng], { icon });
 
-let popupContent = `<b>${item.Place}</b><br>${item.Category}<br>VisitedB: ${item.Date}`;
+let popupContent = `<b>${item.Place}</b><br>${item.Category}<br>VisitedC: ${item.Date}`;
 
 // Add Blog info
 const blog = (item.Blog || '').trim();
