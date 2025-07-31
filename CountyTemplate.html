@@ -14,86 +14,94 @@
 <body>
   <div id="content">Loading...</div>
 
-  <script>
-    async function loadCounty() {
-      const params = new URLSearchParams(window.location.search);
-      const county = params.get('county');
-      if (!county) return document.getElementById('content').innerText = "No county specified.";
+<script>
+  async function loadCounty() {
+    const params = new URLSearchParams(window.location.search);
+    const county = params.get('county');
+    if (!county) return document.getElementById('content').innerText = "No county specified.";
 
-      const countyCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQyRVGJUzbjaaqh6JFCSjo22E8TWflgfwhDY2NIR6JiZdZufAg7Ny66l73hU9Lo-vHRq-O730-N-pTp/pub?gid=699579989&single=true&output=csv';
-      const blogCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQyRVGJUzbjaaqh6JFCSjo22E8TWflgfwhDY2NIR6JiZdZufAg7Ny66l73hU9Lo-vHRq-O730-N-pTp/pub?gid=1842473880&single=true&output=csv';
+    // Load main sheet (intros)
+    const csvUrlIntro = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQyRVGJUzbjaaqh6JFCSjo22E8TWflgfwhDY2NIR6JiZdZufAg7Ny66l73hU9Lo-vHRq-O730-N-pTp/pub?gid=699579989&single=true&output=csv';
+    const responseIntro = await fetch(csvUrlIntro);
+    const textIntro = await responseIntro.text();
+    const rowsIntro = textIntro.trim().split('\n').map(row => row.split(','));
+    const headersIntro = rowsIntro[0];
+    const dataIntro = rowsIntro.slice(1).map(row => {
+      const obj = {};
+      row.forEach((cell, i) => obj[headersIntro[i]] = cell);
+      return obj;
+    });
 
-      const [countyRes, blogRes] = await Promise.all([
-        fetch(countyCsvUrl),
-        fetch(blogCsvUrl)
-      ]);
-      const [countyText, blogText] = await Promise.all([
-        countyRes.text(),
-        blogRes.text()
-      ]);
+    const entry = dataIntro.find(row => row.County.toLowerCase() === county.toLowerCase());
+    if (!entry) return document.getElementById('content').innerText = "County not found in sheet.";
 
-      function parseCSV(text) {
-        const rows = text.trim().split('\n').map(row => row.split(','));
-        const headers = rows[0];
-        return rows.slice(1).map(row => {
-          const obj = {};
-          row.forEach((cell, i) => obj[headers[i]] = cell);
-          return obj;
-        });
-      }
+    const imageUrl = `https://stevethenoncoder.github.io/ABCMAPS/Photos/${encodeURIComponent(entry.County)}.jpg`;
 
-      const countyData = parseCSV(countyText);
-      const blogData = parseCSV(blogText);
+    // Load blog post data
+    const csvUrlBlogs = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQyRVGJUzbjaaqh6JFCSjo22E8TWflgfwhDY2NIR6JiZdZufAg7Ny66l73hU9Lo-vHRq-O730-N-pTp/pub?gid=1842473880&single=true&output=csv';
+    const responseBlogs = await fetch(csvUrlBlogs);
+    const textBlogs = await responseBlogs.text();
+    const rowsBlogs = textBlogs.trim().split('\n').map(row => row.split(','));
+    const headersBlogs = rowsBlogs[0];
+    const dataBlogs = rowsBlogs.slice(1).map(row => {
+      const obj = {};
+      row.forEach((cell, i) => obj[headersBlogs[i]] = cell);
+      return obj;
+    });
 
-      const entry = countyData.find(row => row.County.toLowerCase() === county.toLowerCase());
-      if (!entry) return document.getElementById('content').innerText = "County not found in sheet.";
+    const countyPosts = dataBlogs.filter(row => row.County.toLowerCase() === county.toLowerCase());
 
-      const countyBlogs = blogData.filter(row => row.County.toLowerCase() === county.toLowerCase());
+    // Generate HTML table for blog posts
+    let tableHtml = `
+      <h2>Blog Posts</h2>
+      <table style="width: 100%; border-collapse: collapse; margin-top: 1em;">
+        <thead>
+          <tr>
+            <th style="text-align: left; border-bottom: 1px solid #ccc;">Category</th>
+            <th style="text-align: left; border-bottom: 1px solid #ccc;">Place</th>
+            <th style="text-align: left; border-bottom: 1px solid #ccc;">Visited</th>
+            <th style="text-align: left; border-bottom: 1px solid #ccc;">Date</th>
+            <th style="text-align: left; border-bottom: 1px solid #ccc;">Blog</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
 
-      const imageUrl = `https://stevethenoncoder.github.io/ABCMAPS/Photos/${encodeURIComponent(entry.County)}.jpg`;
+    for (const row of countyPosts) {
+      const blogCell = row.Blog && row.Blog.toLowerCase() !== "no"
+        ? `<a href="${row.Blog}" style="color: blue; text-decoration: underline;">Link</a>`
+        : '';
 
-      const blogTable = countyBlogs.length > 0 ? `
-        <h2>Blog Posts</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Category</th>
-              <th>Place</th>
-              <th>Visited</th>
-              <th>Date</th>
-              <th>Blog</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${countyBlogs.map(row => `
-              <tr>
-                <td>${row.Category}</td>
-                <td>${row.Place}</td>
-                <td>${row.Visited}</td>
-                <td>${row.Date}</td>
-                <td>${row.Blog ? `<a href="${row.Blog}" target="_blank">Link</a>` : ''}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      ` : '<p>No blog entries found for this county.</p>';
-
-      const html = `
-        <h1>${entry.County}</h1>
-        <div>${entry.Intro}</div>
-        <img src="${imageUrl}" alt="Photo of ${entry.County}">
-        ${blogTable}
-        <h2>More Posts (Label View)</h2>
-        <iframe src="https://sjhretire.blogspot.com/search/label/ABC%3A%20${encodeURIComponent(entry.County)}" height="800"></iframe>
-        <h2>Map</h2>
-        <iframe src="https://stevethenoncoder.github.io/ABCMAPS/?county=${encodeURIComponent(entry.County)}"
-          style="width: 100%; height: 800px; border: none;"></iframe>
+      tableHtml += `
+        <tr>
+          <td>${row.Category || ''}</td>
+          <td>${row.Place || ''}</td>
+          <td>${row.Visited || ''}</td>
+          <td>${row.Date || ''}</td>
+          <td>${blogCell}</td>
+        </tr>
       `;
-
-      document.getElementById('content').innerHTML = html;
     }
 
-    loadCounty();
-  </script>
+    tableHtml += `
+        </tbody>
+      </table>
+    `;
+
+    // Full HTML content
+    const html = `
+      <h1>${entry.County}</h1>
+      <div>${entry.Intro}</div>
+      <img src="${imageUrl}" alt="Photo of ${entry.County}" style="max-width:100%; border-radius: 8px; box-shadow: 0 0 8px #ccc;">
+      ${tableHtml}
+      <iframe src="https://stevethenoncoder.github.io/ABCMAPS/?county=${encodeURIComponent(entry.County)}" style="width: 100%; height: 800px; border: none;" scrolling="no"></iframe>
+    `;
+
+    document.getElementById('content').innerHTML = html;
+  }
+
+  loadCounty();
+</script>
+
 </body>
 </html>
