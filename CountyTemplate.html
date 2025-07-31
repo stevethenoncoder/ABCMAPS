@@ -32,14 +32,17 @@
       const entry = data.find(row => row.County.toLowerCase() === county.toLowerCase());
       if (!entry) return document.getElementById('content').innerText = "County not found in sheet.";
 
-      const html = `
-        <h1>${entry.County}</h1>
-        <div>${entry.Intro}</div>
-        ${entry["Photo1"] ? `<img src="${entry["Photo1"]}" alt="Photo of ${entry.County}">` : ''}
-        <iframe src="https://stevethenoncoder.github.io/ABCMAPS/?county=${encodeURIComponent(entry.County)}"></iframe>
-        <h2>Blog Posts</h2>
-        <iframe src="https://sjhretire.blogspot.com/search/label/ABC%3A%20${encodeURIComponent(entry.County)}" height="800"></iframe>
-      `;
+const imageUrl = `https://stevethenoncoder.github.io/ABCMAPS/Photos/${encodeURIComponent(entry.County)}.jpg`;
+
+const html = `
+  <h1>${entry.County}</h1>
+  <div>${entry.Intro}</div>
+  <img src="${imageUrl}" alt="Photo of ${entry.County}" style="max-width:100%; border-radius: 8px; box-shadow: 0 0 8px #ccc;">
+  <iframe src="https://stevethenoncoder.github.io/ABCMAPS/?county=${encodeURIComponent(entry.County)}"></iframe>
+  <h2>Blog Posts</h2>
+  <iframe src="https://sjhretire.blogspot.com/search/label/ABC%3A%20${encodeURIComponent(entry.County)}" height="800"></iframe>
+`;
+
 
       document.getElementById('content').innerHTML = html;
     }
