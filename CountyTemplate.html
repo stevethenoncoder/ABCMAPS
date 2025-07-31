@@ -12,7 +12,7 @@
   </style>
 </head>
 <body>
-  <div id="content">Loading 1...</div>
+  <div id="content">Loading 2...</div>
 
 <script>
 
@@ -110,7 +110,21 @@
   }
 
   loadCounty();
+
+  function sendHeightToParent() {
+  const height = document.documentElement.scrollHeight || document.body.scrollHeight;
+  parent.postMessage({ iframeHeight: height }, '*');
+}
+
+// Send height after page load
+window.addEventListener('load', sendHeightToParent);
+
+// Optionally, send height on resize if content changes dynamically
+window.addEventListener('resize', sendHeightToParent);
+
+// If your content changes dynamically after load, call sendHeightToParent() again as needed
 </script>
+
 
 </body>
 </html>
