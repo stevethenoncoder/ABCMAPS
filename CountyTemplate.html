@@ -12,9 +12,24 @@
   </style>
 </head>
 <body>
-  <div id="content">Loading...</div>
+  <div id="content">Loading 1...</div>
 
 <script>
+
+  //Help functions
+  function parseCSV(text) {
+  const rows = text.trim().split('\n').map(row => row.split(','));
+  const headers = rows[0].map(h => h.trim());
+  return rows.slice(1).map(row => {
+    const obj = {};
+    row.forEach((cell, i) => {
+      obj[headers[i]] = (cell || '').trim();
+    });
+    return obj;
+  });
+}
+  
+  
   async function loadCounty() {
     const params = new URLSearchParams(window.location.search);
     const county = params.get('county');
@@ -26,11 +41,8 @@
     const textIntro = await responseIntro.text();
     const rowsIntro = textIntro.trim().split('\n').map(row => row.split(','));
     const headersIntro = rowsIntro[0];
-    const dataIntro = rowsIntro.slice(1).map(row => {
-      const obj = {};
-      row.forEach((cell, i) => obj[headersIntro[i]] = cell);
-      return obj;
-    });
+    const dataIntro = parseCSV(textIntro);
+    );
 
     const entry = dataIntro.find(row => row.County.toLowerCase() === county.toLowerCase());
     if (!entry) return document.getElementById('content').innerText = "County not found in sheet.";
@@ -43,11 +55,8 @@
     const textBlogs = await responseBlogs.text();
     const rowsBlogs = textBlogs.trim().split('\n').map(row => row.split(','));
     const headersBlogs = rowsBlogs[0];
-    const dataBlogs = rowsBlogs.slice(1).map(row => {
-      const obj = {};
-      row.forEach((cell, i) => obj[headersBlogs[i]] = cell);
-      return obj;
-    });
+    const dataBlogs = parseCSV(textBlogs);
+    );
 
     const countyPosts = dataBlogs.filter(row => row.County.toLowerCase() === county.toLowerCase());
 
