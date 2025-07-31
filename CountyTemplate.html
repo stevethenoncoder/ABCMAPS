@@ -42,7 +42,7 @@
     const rowsIntro = textIntro.trim().split('\n').map(row => row.split(','));
     const headersIntro = rowsIntro[0];
     const dataIntro = parseCSV(textIntro);
-    );
+    
 
     const entry = dataIntro.find(row => row.County.toLowerCase() === county.toLowerCase());
     if (!entry) return document.getElementById('content').innerText = "County not found in sheet.";
@@ -56,7 +56,7 @@
     const rowsBlogs = textBlogs.trim().split('\n').map(row => row.split(','));
     const headersBlogs = rowsBlogs[0];
     const dataBlogs = parseCSV(textBlogs);
-    );
+    
 
     const countyPosts = dataBlogs.filter(row => row.County.toLowerCase() === county.toLowerCase());
 
