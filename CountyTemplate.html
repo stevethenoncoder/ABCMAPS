@@ -6,6 +6,9 @@
     body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: auto; }
     img { max-width: 100%; margin: 1em 0; }
     iframe { width: 100%; height: 600px; border: none; margin: 1em 0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1em; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #f0f0f0; }
   </style>
 </head>
 <body>
@@ -17,35 +20,75 @@
       const county = params.get('county');
       if (!county) return document.getElementById('content').innerText = "No county specified.";
 
-      const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQyRVGJUzbjaaqh6JFCSjo22E8TWflgfwhDY2NIR6JiZdZufAg7Ny66l73hU9Lo-vHRq-O730-N-pTp/pub?gid=699579989&single=true&output=csv';
-      const response = await fetch(csvUrl);
-      const text = await response.text();
-      const rows = text.trim().split('\n').map(row => row.split(','));
+      const countyCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQyRVGJUzbjaaqh6JFCSjo22E8TWflgfwhDY2NIR6JiZdZufAg7Ny66l73hU9Lo-vHRq-O730-N-pTp/pub?gid=699579989&single=true&output=csv';
+      const blogCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQyRVGJUzbjaaqh6JFCSjo22E8TWflgfwhDY2NIR6JiZdZufAg7Ny66l73hU9Lo-vHRq-O730-N-pTp/pub?gid=1842473880&single=true&output=csv';
 
-      const headers = rows[0];
-      const data = rows.slice(1).map(row => {
-        const obj = {};
-        row.forEach((cell, i) => obj[headers[i]] = cell);
-        return obj;
-      });
+      const [countyRes, blogRes] = await Promise.all([
+        fetch(countyCsvUrl),
+        fetch(blogCsvUrl)
+      ]);
+      const [countyText, blogText] = await Promise.all([
+        countyRes.text(),
+        blogRes.text()
+      ]);
 
-      const entry = data.find(row => row.County.toLowerCase() === county.toLowerCase());
+      function parseCSV(text) {
+        const rows = text.trim().split('\n').map(row => row.split(','));
+        const headers = rows[0];
+        return rows.slice(1).map(row => {
+          const obj = {};
+          row.forEach((cell, i) => obj[headers[i]] = cell);
+          return obj;
+        });
+      }
+
+      const countyData = parseCSV(countyText);
+      const blogData = parseCSV(blogText);
+
+      const entry = countyData.find(row => row.County.toLowerCase() === county.toLowerCase());
       if (!entry) return document.getElementById('content').innerText = "County not found in sheet.";
 
-const imageUrl = `https://stevethenoncoder.github.io/ABCMAPS/Photos/${encodeURIComponent(entry.County)}.jpg`;
+      const countyBlogs = blogData.filter(row => row.County.toLowerCase() === county.toLowerCase());
 
-const html = `
-  <h1>${entry.County}</h1>
-  <div>${entry.Intro}</div>
-  <img src="${imageUrl}" alt="Photo of ${entry.County}" style="max-width:100%; border-radius: 8px; box-shadow: 0 0 8px #ccc;">
-  <h2>Blog Posts</h2>
-  <iframe src="https://sjhretire.blogspot.com/search/label/ABC%3A%20${encodeURIComponent(entry.County)}" height="800"></iframe>
-  <iframe src="https://stevethenoncoder.github.io/ABCMAPS/?county=${encodeURIComponent(entry.County)}"
-  style="width: 100%; height: 800px; border: none;" 
-  scrolling="no"></iframe>
+      const imageUrl = `https://stevethenoncoder.github.io/ABCMAPS/Photos/${encodeURIComponent(entry.County)}.jpg`;
 
-`;
+      const blogTable = countyBlogs.length > 0 ? `
+        <h2>Blog Posts</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Place</th>
+              <th>Visited</th>
+              <th>Date</th>
+              <th>Blog</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${countyBlogs.map(row => `
+              <tr>
+                <td>${row.Category}</td>
+                <td>${row.Place}</td>
+                <td>${row.Visited}</td>
+                <td>${row.Date}</td>
+                <td>${row.Blog ? `<a href="${row.Blog}" target="_blank">Link</a>` : ''}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      ` : '<p>No blog entries found for this county.</p>';
 
+      const html = `
+        <h1>${entry.County}</h1>
+        <div>${entry.Intro}</div>
+        <img src="${imageUrl}" alt="Photo of ${entry.County}">
+        ${blogTable}
+        <h2>More Posts (Label View)</h2>
+        <iframe src="https://sjhretire.blogspot.com/search/label/ABC%3A%20${encodeURIComponent(entry.County)}" height="800"></iframe>
+        <h2>Map</h2>
+        <iframe src="https://stevethenoncoder.github.io/ABCMAPS/?county=${encodeURIComponent(entry.County)}"
+          style="width: 100%; height: 800px; border: none;"></iframe>
+      `;
 
       document.getElementById('content').innerHTML = html;
     }
