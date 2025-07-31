@@ -53,7 +53,7 @@
 
     // Generate HTML table for blog posts
     let tableHtml = `
-      <h2>Blog Posts</h2>
+      <h2>Places planned/visited</h2>
       <table style="width: 100%; border-collapse: collapse; margin-top: 1em;">
         <thead>
           <tr>
@@ -69,7 +69,7 @@
 
     for (const row of countyPosts) {
       const blogCell = row.Blog && row.Blog.toLowerCase() !== "no"
-        ? `<a href="${row.Blog}" style="color: blue; text-decoration: underline;">Link</a>`
+        ? `<a href="${row.Blog}" style="color: blue; text-decoration: underline;" target="_self">Link</a>`
         : '';
 
       tableHtml += `
