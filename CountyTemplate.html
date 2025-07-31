@@ -12,7 +12,7 @@
   </style>
 </head>
 <body>
-  <div id="content">Loading 3...</div>
+  <div id="content">Loading 4...</div>
 
 <script>
 
@@ -107,6 +107,9 @@
     `;
 
     document.getElementById('content').innerHTML = html;
+
+    // Tell parent to resize iframe NOW that content is loaded
+sendHeightToParent();
   }
 
   loadCounty();
