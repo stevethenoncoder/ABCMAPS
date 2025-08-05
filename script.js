@@ -137,6 +137,7 @@ function populateFilters() {
 
 // Function to display markers on the map
 function displayMarkers(data) {
+    console.log("Markers to display:", data);
     markers.clearLayers();
     const latLngs = [];
     const showLabels = document.getElementById('toggle-labels').checked;
