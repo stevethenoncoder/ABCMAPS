@@ -31,8 +31,22 @@ let currentData = []; // this will always hold the latest filtered or full datas
 fetch(sheetUrl)
     .then(response => response.text())
     .then(csvText => {
-        // Parse the CSV data
-        allData = parseCSV(csvText);
+        // Parse with Papa Parse
+        const results = Papa.parse(csvText, {
+            header: true,          // Use first row as keys
+            skipEmptyLines: true,  // Skip empty lines
+            dynamicTyping: false   // Keep everything as strings (like before)
+        });
+
+        // Sanitize each cell if you want
+        allData = results.data.map(row => {
+            const sanitizedRow = {};
+            for (const [key, value] of Object.entries(row)) {
+                sanitizedRow[key] = sanitize(value);
+            }
+            return sanitizedRow;
+        });
+
         currentData = allData; // set initial full dataset
         // Populate filters and display all markers initially
         populateFilters();
