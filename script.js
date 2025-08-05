@@ -65,7 +65,7 @@ function parseCSV(text) {
     const headers = lines[0].split(',').map(h => h.trim());
     const rows = [];
     for (let i = 1; i < lines.length; i++) {
-        const data = lines[i].split(',').map(d => d.trim());
+     const data = lines[i].split(',').map(d => sanitize(d)); // <--- Sanitize each cell
         if (data.length === headers.length) {
             const row = {};
             for (let j = 0; j < headers.length; j++) {
