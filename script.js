@@ -175,6 +175,13 @@ function displayMarkers(data) {
 
 let popupContent = `<b>${item.Place}</b><br>${item.Category}<br>VisitedC: ${item.Date}`;
 
+// Add Google Map Link if available
+const gmap = (item['Google Map Link'] || '').trim();
+if (gmap !== '') {
+    popupContent += `<br><a href="${gmap}" target="_blank">Google Maps</a>`;
+}
+
+            
 // Add Blog info
 const blog = (item.Blog || '').trim();
 if (blog.toLowerCase() === 'no' || blog === '') {
