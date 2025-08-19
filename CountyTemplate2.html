@@ -1,1 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>County Explorer</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: auto; }
+    img { max-width: 100%; margin: 1em 0; }
+    iframe { width: 100%; height: 600px; border: none; margin: 1em 0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1em; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #f0f0f0; }
+  </style>
+</head>
+<body>
+  <div id="content">Loading 4...</div>
 
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  
+<script>
+
+  function parseCSV(text) {
+    const result = Papa.parse(text, { header: true });
+    return result.data;
+  }  
+  async function loadCounty() {
+    const params = new URLSearchParams(window.location.search);
+    const county = params.get('county');
+    if (!county) return document.getElementById('content').innerText = "No county specified.";
+
+    // Load main sheet (intros)
+    const csvUrlIntro = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQyRVGJUzbjaaqh6JFCSjo22E8TWflgfwhDY2NIR6JiZdZufAg7Ny66l73hU9Lo-vHRq-O730-N-pTp/pub?gid=699579989&single=true&output=csv';
+    const responseIntro = await fetch(csvUrlIntro);
+    const textIntro = await responseIntro.text();
+    const rowsIntro = textIntro.trim().split('\n').map(row => row.split(','));
+    const headersIntro = rowsIntro[0];
+    const dataIntro = parseCSV(textIntro);
+    
+
+    const entry = dataIntro.find(row => row.County.toLowerCase() === county.toLowerCase());
+    if (!entry) return document.getElementById('content').innerText = "County not found in sheet.";
+
+    const imageUrl = `https://stevethenoncoder.github.io/ABCMAPS/Photos/${encodeURIComponent(entry.County)}.jpg`;
+
+    // Load blog post data
+    const csvUrlBlogs = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQyRVGJUzbjaaqh6JFCSjo22E8TWflgfwhDY2NIR6JiZdZufAg7Ny66l73hU9Lo-vHRq-O730-N-pTp/pub?gid=1842473880&single=true&output=csv';
+    const responseBlogs = await fetch(csvUrlBlogs);
+    const textBlogs = await responseBlogs.text();
+    const rowsBlogs = textBlogs.trim().split('\n').map(row => row.split(','));
+    const headersBlogs = rowsBlogs[0];
+    const dataBlogs = parseCSV(textBlogs);
+    
+
+    const countyPosts = dataBlogs.filter(row => row.County.toLowerCase() === county.toLowerCase());
+
+    // Generate HTML table for blog posts
+    let tableHtml = `
+      <h2>Places planned/visited</h2>
+      <table style="width: 100%; border-collapse: collapse; margin-top: 1em;">
+        <thead>
+          <tr>
+            <th style="text-align: left; border-bottom: 1px solid #ccc;">Category</th>
+            <th style="text-align: left; border-bottom: 1px solid #ccc;">Place</th>
+            <th style="text-align: left; border-bottom: 1px solid #ccc;">Visited</th>
+            <th style="text-align: left; border-bottom: 1px solid #ccc;">Date</th>
+            <th style="text-align: left; border-bottom: 1px solid #ccc;">Blog</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    for (const row of countyPosts) {
+      const blogCell = row.Blog && row.Blog.toLowerCase() !== "no"
+        ? `<a href="${row.Blog}" style="color: blue; text-decoration: underline;" target="_self">Link</a>`
+        : '';
+
+      tableHtml += `
+        <tr>
+          <td>${row.Category || ''}</td>
+          <td>${row.Place || ''}</td>
+          <td>${row.Visited || ''}</td>
+          <td>${row.Date || ''}</td>
+          <td>${blogCell}</td>
+        </tr>
+      `;
+    }
+
+    tableHtml += `
+        </tbody>
+      </table>
+    `;
+
+    // Full HTML content
+    const html = `
+      <h1>${entry.County}</h1>
+      <div style="white-space: pre-line;">${entry.Intro}</div>
+      <img src="${imageUrl}" alt="Photo of ${entry.County}" style="max-width:100%; border-radius: 8px; box-shadow: 0 0 8px #ccc;">
+      ${tableHtml}
+      <iframe src="https://stevethenoncoder.github.io/ABCMAPS/?county=${encodeURIComponent(entry.County)}" style="width: 100%; height: 800px; border: none;" scrolling="no"></iframe>
+    `;
+
+    document.getElementById('content').innerHTML = html;
+
+    // Tell parent to resize iframe NOW that content is loaded
+sendHeightToParent();
+  }
+
+  loadCounty();
+
+  </script>
+<script>
+  function sendHeightToParent() {
+  const height = document.documentElement.scrollHeight || document.body.scrollHeight;
+  parent.postMessage({ iframeHeight: height }, '*');
+}
+
+// Send height after page load
+window.addEventListener('load', sendHeightToParent);
+
+// Optionally, send height on resize if content changes dynamically
+window.addEventListener('resize', sendHeightToParent);
+
+// If your content changes dynamically after load, call sendHeightToParent() again as needed
+</script>
+
+
+</body>
+</html>
