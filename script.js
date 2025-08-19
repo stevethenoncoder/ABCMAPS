@@ -217,19 +217,25 @@ if (blog.toLowerCase() === 'no' || blog === '') {
 function applyFilters() {
     const selectedCounty = document.getElementById('county-filter').value;
     const selectedCategory = document.getElementById('category-filter').value;
+    const onlyVisited = document.getElementById('toggle-visited').checked;
 
     currentData = allData.filter(item => {
         const countyMatch = (selectedCounty === 'all' || item.County === selectedCounty);
         const categoryMatch = (selectedCategory === 'all' || item.Category === selectedCategory);
-        return countyMatch && categoryMatch;
+        const visitedMatch = (!onlyVisited || (item.Visited && item.Visited.trim().toLowerCase() === 'yes'));
+        return countyMatch && categoryMatch && visitedMatch;
     });
 
     displayMarkers(currentData);
 }
 
 
+
 document.getElementById('toggle-labels').addEventListener('change', () => {
     displayMarkers(currentData);
 });
 
+document.getElementById('toggle-visited').addEventListener('change', () => {
+    applyFilters();
+});
 
