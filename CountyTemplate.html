@@ -14,22 +14,14 @@
 <body>
   <div id="content">Loading 4...</div>
 
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  
 <script>
 
-  //Help functions
   function parseCSV(text) {
-  const rows = text.trim().split('\n').map(row => row.split(','));
-  const headers = rows[0].map(h => h.trim());
-  return rows.slice(1).map(row => {
-    const obj = {};
-    row.forEach((cell, i) => {
-      obj[headers[i]] = (cell || '').trim();
-    });
-    return obj;
-  });
-}
-  
-  
+    const result = Papa.parse(text, { header: true });
+    return result.data;
+  }  
   async function loadCounty() {
     const params = new URLSearchParams(window.location.search);
     const county = params.get('county');
@@ -100,7 +92,7 @@
     // Full HTML content
     const html = `
       <h1>${entry.County}</h1>
-      <div>${entry.Intro}</div>
+      <div style="white-space: pre-line;">${entry.Intro}</div>
       <img src="${imageUrl}" alt="Photo of ${entry.County}" style="max-width:100%; border-radius: 8px; box-shadow: 0 0 8px #ccc;">
       ${tableHtml}
       <iframe src="https://stevethenoncoder.github.io/ABCMAPS/?county=${encodeURIComponent(entry.County)}" style="width: 100%; height: 800px; border: none;" scrolling="no"></iframe>
